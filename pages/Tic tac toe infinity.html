@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ttt infinity</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            margin: 20px 10%;
+        }
+
+        #status {
+            font-size: 1.5em;
+            margin: 10px 0;
+            filter: drop-shadow(0px 0px 5px #5f82ff);
+        }
+
+        .score {
+            display: flex;
+            justify-content: space-around;
+            width: 400px;
+        }
+        #Xscore {
+            color: #5f82ff;
+        }
+        #Oscore {
+            color: #ff5f5f;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(var(--arenaSize), var(--cellSize));
+            grid-template-rows: repeat(var(--arenaSize), var(--cellSize));
+            gap: 2px;
+            margin: 20px;
+        }
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(var(--cellSize)/1.5);
+            color: white;
+            border: 2px solid #333;
+            cursor: pointer;
+            transition: 0.5s;
+        }
+        .cell.X {
+            cursor: not-allowed;
+            background-color: #5f82ff;
+        }
+        .cell.O {
+            cursor: not-allowed;
+            background-color: #ff5f5f;
+        }
+
+        .sizeSelector {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px #333 solid;
+            border-radius: 10px;
+        }
+        input {
+            text-align: center;
+        }
+        button {
+            font-size: 1em;
+            padding: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .modal-overlay {
+        display: flex;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center; align-items: center;
+        }
+
+        .modal {
+        width: 800px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        }
+
+        .close-btn {
+        margin-top: 10px;
+        cursor: pointer;
+        background: #ff5f5f;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        }
+
+        .modal-text {
+            font-size: 20px;
+            text-align: left;
+        }
+
+    </style>
+</head>
+<body>
+ 
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <p class="modal-text">Tic tac toe infinity is a special version of Tic tac toe.
+The rules are as follows: <br>
+• 3 symbols horizontally, vertically, diagonally = 1 point <br>
+• The one with the most points wins <br>
+• If the number of points is the same, the one who got the point first wins <br>
+• If the number of points is zero, there will be a draw <br>
+• Have fun</p>
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <a style="position: absolute; top: 30px; left: 30px" href="../index.html">back to portfolio</a>
+
+    <div class="container">
+        <h1>Tic tac toe <b>infinity</b></h1>
+        <div id="status">Turn: X</div>
+        <div class="score">
+            <span>Score X: <span id="Xscore">0</span></span> <span>Score O: <span id="Oscore">0</span></span>
+        </div>
+
+        <div class="board" id="board"></div>
+
+        <div class="sizeSelector">
+            <span>Select the size of the next arena</span><br>
+            <input id="arenaSize" type="number" min="1" value="3">
+            <button onclick="resetGame()">Restart</button>
+        </div>
+
+    </div>
+    
+    <script>
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+
+        const root = document.documentElement;
+        const board = document.getElementById("board");
+        const status = document.getElementById("status");
+        const Xscore = document.getElementById("Xscore");
+        const Oscore = document.getElementById("Oscore");
+        let arenaSize = Number(document.getElementById("arenaSize").value)
+        
+        let currentPlayer = "X";
+        let firstPoint;
+        let gameBoard = [];
+
+        let winArrayX = [];
+        let winArrayO = [];
+        let winPatterns = [];      
+        
+        function createBoard() {
+            arenaSize = Number(document.getElementById("arenaSize").value)
+            root.style.setProperty("--arenaSize", `${arenaSize}`);
+            cellSize = window.innerHeight / 1.5 / arenaSize
+            root.style.setProperty("--cellSize", `${cellSize}px`);
+            for(let i = 0; i < arenaSize*arenaSize; i++){
+                gameBoard.push("")
+            }
+
+            board.innerHTML = "";
+            gameBoard.forEach((cell, index) => {
+                const cellElement = document.createElement("div");
+                cellElement.classList.add("cell");
+                cellElement.textContent = cell;
+                cellElement.addEventListener("click", () => makeMove(index));
+                board.appendChild(cellElement);
+            });
+
+            winPatterns = [];
+            for (let e = 0; e < arenaSize; e++) {
+                for (let i = 0; i < arenaSize-2; i++) {
+                    winPatterns.push([i +arenaSize*e, i+1 +arenaSize*e, i+2 +arenaSize*e])
+                }
+            }
+            for (let e = 0; e < arenaSize-2; e++) {
+                for (let i = 0; i < arenaSize; i++) {
+                    winPatterns.push([i +arenaSize*e, i +arenaSize*(e+1), i +arenaSize*(e+2)])
+                }
+            }
+            for (let e = 0; e < arenaSize-2; e++) {
+                for (let i = 0; i < arenaSize-2; i++) {
+                    winPatterns.push([i +arenaSize*e, i+1 +arenaSize*(e+1), i+2 +arenaSize*(e+2)])
+                }
+            }
+            for (let e = 0; e < arenaSize-2; e++) {
+                for (let i = 0; i < arenaSize-2; i++) {
+                    winPatterns.push([i+2 +arenaSize*e, i+1 +arenaSize*(e+1), i +arenaSize*(e+2)])
+                }
+            }
+        }
+        
+        function makeMove(index) {
+            if (!gameBoard[index]) {
+            gameBoard[index] = currentPlayer;
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            updateBoard();
+            }
+        }
+        
+        function updateBoard() {
+            document.querySelectorAll(".cell").forEach((cell, index) => {
+                cell.textContent = gameBoard[index];
+                if (gameBoard[index]) cell.classList.add(`${gameBoard[index]}`);
+            });
+
+            checkWinner();
+
+            if (!gameBoard.includes("")) {
+
+                if (winArrayX.length > winArrayO.length) {
+                    status.textContent = "X wins!";
+                    status.style.filter = "drop-shadow(0px 0px 10px #5f82ff)";
+                } else if (winArrayX.length < winArrayO.length) {
+                    status.textContent = "O wins!";
+                    status.style.filter = "drop-shadow(0px 0px 10px #ff5f5f)";
+                } else if (window.getComputedStyle(Xscore).textDecorationLine === "underline") {
+                    status.textContent = "X wins!";
+                    status.style.filter = "drop-shadow(0px 0px 10px #5f82ff)";
+                } else if (window.getComputedStyle(Oscore).textDecorationLine === "underline") {
+                    status.textContent = "O wins!";
+                    status.style.filter = "drop-shadow(0px 0px 10px #ff5f5f)";
+                } else {
+                    status.textContent = "Draw!";
+                    status.style.filter = "none";
+                }
+            } else {
+                status.textContent = `Turn: ${currentPlayer}`;
+                status.style.filter = currentPlayer === "X" ? "drop-shadow(0px 0px 10px #5f82ff)" : "drop-shadow(0px 0px 10px #ff5f5f)";
+            }
+
+            Xscore.textContent = winArrayX.length;
+            Oscore.textContent = winArrayO.length;
+
+            //showGameBoardArray ()
+            //showWinPatterns ()
+        }
+
+        function showGameBoardArray () {
+            let gameBoardArray = '';
+            for (let e = 0; e < arenaSize; e++) {
+                for (let i = 0; i < arenaSize; i++) {
+                    gameBoardArray += ' [' + gameBoard[i + arenaSize*e] + '] '
+                }
+                gameBoardArray += '\n'
+            }
+            console.log(gameBoardArray)
+        }
+
+        function showWinPatterns () {
+            for (let i = 0; i < winPatterns.length; i++)
+            {
+                console.log(winPatterns[i])
+            }
+        }
+        
+        function checkWinner() {
+            winArrayX = [];
+            winArrayO = [];
+            for (let pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    if (gameBoard[a] == 'X') {
+                        winArrayX.push(gameBoard[a])
+                    } else {
+                        winArrayO.push(gameBoard[a])
+                    }
+                    
+                }
+            }
+            
+            if (winArrayX.length == 1 && winArrayO.length == 0) { Xscore.style.textDecoration = "underline"; }
+            if (winArrayX.length == 0 && winArrayO.length == 1) { Oscore.style.textDecoration = "underline"; }
+
+            //console.log(winArrayX)
+            //console.log(winArrayO)
+            // return winArray;
+        }
+        
+        function resetGame() {
+            gameBoard = [];
+            currentPlayer = "X";
+            status.textContent = "Turn: X";
+            status.style.filter = "drop-shadow(0px 0px 10px #5f82ff)";
+
+            Xscore.style.textDecoration = "none";
+            Oscore.style.textDecoration = "none";
+            Xscore.textContent = 0;
+            Oscore.textContent = 0;
+
+            createBoard();
+        }
+        
+        createBoard();
+    </script>
+</body>
+</html>
