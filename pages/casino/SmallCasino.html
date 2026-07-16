@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Small casino</title>
+
+    <style>
+        body {
+            background-color: #3E2723;
+            transition: all 2s;
+        }
+
+        .casino-container-primary {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            width: 100%;
+            height: 100vh;
+        }
+
+        .casino-container {
+            position: relative;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            width: 600px;
+            height: 600px;
+        }
+        .casino-container::before {
+            content: "";
+            position: absolute;
+
+            width: 500px;
+
+            height: 500px;
+            top: calc(50% - 250px);
+            left: calc(50% - 250px);
+
+            border-radius: 50%;
+            background: #F0660A;
+            filter: drop-shadow(0 0 10px red);
+        }
+
+        .mashine-part {
+            background-color:blueviolet;
+            border: 4px gold solid;
+            border-bottom-color: rgb(255, 208, 0);
+
+            font-size: 80px;
+            font-weight: bolder;
+            color: gold;
+        }
+        .cap {
+            width: 400px;
+            height: 150px;
+
+            border-radius: 50% 50% 40px 40px;
+
+            z-index: 1;
+        }
+        .slots-part {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            width: 320px;
+            height: 300px;
+
+            z-index: 1;
+        }
+        .slots-part::before {
+            content: "▶";
+            font-size: 50px;
+
+            position: absolute;
+            left: 140px;
+        }
+        .slots-part::after {
+            content: "◀";
+            font-size: 50px;
+
+            position: absolute;
+            right: 140px;
+        }
+
+        #mechanism-primary {
+            position: absolute;
+            right: 80px;
+            bottom: 255px;
+            display: flex;
+            flex-direction: column;
+
+            width: 60px;
+        }
+        #mechanism {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #lever-part {
+            width: 50px;
+            height: 80px;
+            border-radius: 10px;
+
+            transform:translateY(-10px);
+            z-index: 1;
+        }
+        #lever {
+            width: 10px;
+            height: 100px;
+
+            border-top: none;
+            border-top-style: none;
+            border-radius: 0 0 8px 8px;
+
+            z-index: 2;
+            transition: all 1s;
+        }
+        #ball {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+
+            position: relative;
+            top: 10px;
+
+            transition: all 1s;
+            z-index: 3;
+        }
+
+        .slots-row {
+            width: 250px;
+            height: 250px;
+            padding: 0 20px;
+
+            display: flex;
+            justify-content: space-around;
+
+            border-radius: 20px;
+            background-color: rgb(115, 36, 189);
+        }
+        .slot {
+            width: 75px;
+
+            image-rendering: pixelated;
+            background-size: 75px;
+            background-position-y: 10px;
+            background-image: url(./casino_slot.png);
+
+            transition: all 2s;
+        }
+        .bottom {
+            width: 400px;
+            height: 150px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 40px;
+
+            z-index: 1;
+        }
+
+        .win {
+            filter: drop-shadow(0 0 10px gold);
+        }
+
+        
+        #back {
+            position: absolute;
+            left : 3%;
+
+            padding: 10px;
+
+            color: aliceblue;
+            background-color: rgba(240, 248, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" id="back">← back</a>
+    <div class="casino-container-primary">
+        <div class="casino-container" id="casino">
+            <div class="cap mashine-part"></div>
+            <div class="slots-part mashine-part">
+                <div id="mechanism-primary">
+                    <div id="mechanism">
+                        <div class="mashine-part" id="ball"></div>
+                        <div class="mashine-part" id="lever"></div>
+                        <div class="mashine-part" id="lever-part"></div>
+                    </div>
+                </div>
+                <div class="slots-row">
+                    <div class="slot" id="slot1"></div>
+                    <div class="slot" id="slot2"></div>
+                    <div class="slot" id="slot3"></div>
+                </div>
+            </div>
+            <div class="bottom mashine-part">
+                CASINO
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const mechanism = document.getElementById("mechanism")
+        const lever = document.getElementById("lever")
+        const ball = document.getElementById("ball")
+        
+        const slot1 = document.getElementById("slot1")
+        const slot2 = document.getElementById("slot2")
+        const slot3 = document.getElementById("slot3")
+
+        let slot1Position = 0
+        let slot2Position = 0
+        let slot3Position = 0
+
+        mechanism.addEventListener("click", () => roll())
+        function roll() {
+            mechanism.style.pointerEvents = "none";
+
+            lever.style.height = "60px";
+            lever.style.transform = "translateY(20px)"
+
+            ball.style.transform = "translateY(20px)"
+            ball.style.width = "60px";
+            ball.style.height = "60px";
+
+            slot1Position = (Math.floor(Math.random() * 16) + 4) * 75 + slot1Position
+            slot2Position = (Math.floor(Math.random() * 16) + 4) * 75 + slot2Position
+            slot3Position = (Math.floor(Math.random() * 16) + 4) * 75 + slot3Position
+
+            // slot1Position = 4*75 + slot1Position
+            // slot2Position = 4*75 + slot2Position
+            // slot3Position = 4*75 + slot3Position
+
+            slot1.style.backgroundPositionY = `${slot1Position + 10}px`
+            slot2.style.backgroundPositionY = `${slot2Position + 10}px`
+            slot3.style.backgroundPositionY = `${slot3Position + 10}px`
+
+
+            setTimeout(() => {
+
+                if ( slot1Position%4 == slot2Position%4 && slot2Position%4 == slot3Position%4 ) {
+                    casino.classList.add("win")
+                    document.body.style.backgroundColor = "#181211"
+
+                    setTimeout(() => {
+                        casino.classList.remove("win")
+                        document.body.style.backgroundColor = "#3E2723"
+                    }, 2000)
+
+                }
+
+                lever.style.height = "100px";
+                lever.style.transform = "translateY(0px)"
+
+                ball.style.transform = "translateY(0px)"
+                ball.style.width = "50px";
+                ball.style.height = "50px";
+
+                mechanism.style.pointerEvents = "auto";
+            }, 2000);
+        }
+
+    </script>
+</body>
+</html>
